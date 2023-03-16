@@ -1,6 +1,9 @@
-﻿namespace Hogwart.Api.DTO;
+﻿using Microsoft.EntityFrameworkCore;
 
-public record StudentDto
+namespace Hogwart.Api.DTO;
+
+[Keyless]
+public class StudentDto
 {
     public string FirstName { get; init; }
     
