@@ -52,6 +52,17 @@ namespace Hogwart.Api.src.Persistence.Migrations
                 name: "IX_StudentDto_HouseDtoName",
                 table: "StudentDto",
                 column: "HouseDtoName");
+            
+            migrationBuilder.InsertData(
+                table: "Houses",
+                columns: new[] { "Name" },
+                values: new object[,]
+                {
+                    { "Gryffindor" },
+                    { "Hufflepuff" },
+                    { "Ravenclaw" },
+                    { "Slytherin" },
+                });
         }
 
         /// <inheritdoc />
