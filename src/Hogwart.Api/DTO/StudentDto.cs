@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Hogwart.Api.DTO;
 
-[Keyless]
 public class StudentDto
 {
+    [JsonIgnore]
+    [Key]
+    public int Id { get; init; }
+
     public string FirstName { get; init; }
     
     public string LastName { get; init; }
