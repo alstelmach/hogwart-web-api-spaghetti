@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Hogwart.Api.Persistence;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hogwart.Api.Controllers;
 
@@ -6,11 +8,27 @@ namespace Hogwart.Api.Controllers;
 [Route("[controller]")]
 public class HousesController : ControllerBase
 {
+    private readonly SortingContext _context;
+
+    public HousesController(SortingContext context)
+    {
+        _context = context;
+    }
+    
     [HttpGet("{houseName}")]
     public async Task<IActionResult> GetAsync(
         [FromRoute] string houseName,
         CancellationToken cancellationToken = default)
     {
-        return Ok();
+        var house = await _context
+            .Houses
+            .FirstOrDefaultAsync(
+                house =>
+                    house.Name == houseName,
+                cancellationToken);
+
+        return house is null
+            ? NotFound()
+            : Ok(house);
     }
 }
