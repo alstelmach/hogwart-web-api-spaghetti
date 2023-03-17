@@ -15,6 +15,8 @@ public class SortingContext : DbContext
                 _persistenceOptions = persistenceOptions.Value;
 
     public virtual DbSet<HouseDto> Houses { get; init; }
+    
+    public virtual DbSet<StudentDto> Students { get; init; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         _persistenceOptions.ConfigureDbContext(optionsBuilder);

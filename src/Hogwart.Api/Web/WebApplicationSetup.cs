@@ -13,14 +13,16 @@ public static class WebApplicationSetup
 
     private static WebApplication ConfigureSwagger(this WebApplication webApplication)
     {
-        var isSwaggerPageGenerationRequired =  webApplication.Environment.IsDevelopment();
+        var isProduction =  webApplication.Environment.IsProduction();
 
-        if (isSwaggerPageGenerationRequired)
+        if (isProduction)
         {
-            webApplication
-                .UseSwagger()
-                .UseSwaggerUI();
+            return webApplication;
         }
+        
+        webApplication
+            .UseSwagger()
+            .UseSwaggerUI();
 
         return webApplication;
     }

@@ -22,6 +22,7 @@ public class HousesController : ControllerBase
     {
         var house = await _context
             .Houses
+            .Include(house => house.Students)
             .FirstOrDefaultAsync(
                 house =>
                     house.Name == houseName,

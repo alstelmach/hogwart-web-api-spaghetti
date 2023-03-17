@@ -15,6 +15,23 @@ public class StudentsController : ControllerBase
     {
         _sortingContext = sortingContext;
     }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetAsync(
+        [FromRoute] int id,
+        CancellationToken cancellationToken = default)
+    {
+        var student = await _sortingContext
+            .Students
+            .FirstOrDefaultAsync(
+                student =>
+                    student.Id == id,
+                cancellationToken);
+
+        return student is null
+            ? NotFound()
+            : Ok();
+    }
     
     [HttpPost]
     public async Task<IActionResult> PostAsync(
@@ -33,6 +50,7 @@ public class StudentsController : ControllerBase
 
         var houses = await _sortingContext
             .Houses
+            .Include(house => house.Students)
             .ToListAsync(cancellationToken);
 
         if (studentDto.IsAmbitious && studentDto.DoesSpeakParseltongue)
@@ -114,6 +132,6 @@ public class StudentsController : ControllerBase
 
         await _sortingContext.SaveChangesAsync(cancellationToken);
 
-        return Ok();
+        return Created($"/students/{studentDto.Id}", studentDto);
     }
 }
