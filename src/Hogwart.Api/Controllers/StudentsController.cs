@@ -53,7 +53,7 @@ public class StudentsController : ControllerBase
             .Include(house => house.Students)
             .ToListAsync(cancellationToken);
 
-        if (studentDto.IsAmbitious && studentDto.DoesSpeakParseltongue)
+        if (studentDto.IsAmbitious && studentDto.DoesSpeakParseltongue && studentDto.HeightInCentimeters > 180)
         {
             var slytherinHouse = houses.First(house => house.Name == "Slytherin");
             var hasEvenNumberOfStudents = slytherinHouse.Students.Count % 2 == 0;
