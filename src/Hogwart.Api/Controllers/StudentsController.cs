@@ -30,7 +30,7 @@ public class StudentsController : ControllerBase
 
         return student is null
             ? NotFound()
-            : Ok();
+            : Ok(student);
     }
     
     [HttpPost]
