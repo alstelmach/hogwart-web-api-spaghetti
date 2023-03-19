@@ -53,85 +53,106 @@ public class StudentsController : ControllerBase
             .Include(house => house.Students)
             .ToListAsync(cancellationToken);
 
-        if (studentDto.IsAmbitious && studentDto.DoesSpeakParseltongue)
+        if (CanAssignToSlytherin(studentDto))
         {
-            var slytherinHouse = houses.First(house => house.Name == "Slytherin");
-            var hasEvenNumberOfStudents = slytherinHouse.Students.Count % 2 == 0;
-
-            if (hasEvenNumberOfStudents)
-            {
-                slytherinHouse.Students.Add(studentDto);
-                _sortingContext.Update(slytherinHouse);
-            }
-            else
-            {
-                var random = new Random();
-                var randomHouseOrdinalNumber = random.Next(0, 3);
-                var randomHouse = houses.ElementAt(randomHouseOrdinalNumber);
-                randomHouse.Students.Add(studentDto);
-                _sortingContext.Update(slytherinHouse);
-            }
+            AssignStudentToHouse(
+                studentDto,
+                houses,
+                "Slytherin");
         }
-        else if (studentDto.HeightInCentimeters > 180)
+        else if (CanAssignToGryffindor(studentDto))
         {
-            var gryffindorHouse = houses.First(house => house.Name == "Gryffindor");
-            var hasEvenNumberOfStudents = gryffindorHouse.Students.Count % 2 == 0;
-
-            if (hasEvenNumberOfStudents)
-            {
-                gryffindorHouse.Students.Add(studentDto);
-                _sortingContext.Update(gryffindorHouse);
-            }
-            else
-            {
-                var random = new Random();
-                var randomHouseOrdinalNumber = random.Next(0, 3);
-                var randomHouse = houses.ElementAt(randomHouseOrdinalNumber);
-                randomHouse.Students.Add(studentDto);
-                _sortingContext.Update(gryffindorHouse);
-            }
+            AssignStudentToHouse(
+                studentDto,
+                houses,
+                "Gryffindor");
         }
-        else if (studentDto.DoesPlayQuidditch)
+        else if (CanAssignToRavenclaw(studentDto))
         {
-            var ravenclawHouse = houses.First(house => house.Name == "Ravenclaw");
-            var hasEvenNumberOfStudents = ravenclawHouse.Students.Count % 2 == 0;
-
-            if (hasEvenNumberOfStudents)
-            {
-                ravenclawHouse.Students.Add(studentDto);
-                _sortingContext.Update(ravenclawHouse);
-            }
-            else
-            {
-                var random = new Random();
-                var randomHouseOrdinalNumber = random.Next(0, 3);
-                var randomHouse = houses.ElementAt(randomHouseOrdinalNumber);
-                randomHouse.Students.Add(studentDto);
-                _sortingContext.Update(ravenclawHouse);
-            }
+            AssignStudentToHouse(
+                studentDto,
+                houses,
+                "Ravenclaw");
         }
         else
         {
-            var hufflepuffHouse = houses.First(house => house.Name == "Hufflepuff");
-            var hasEvenNumberOfStudents = hufflepuffHouse.Students.Count % 2 == 0;
-
-            if (hasEvenNumberOfStudents)
-            {
-                hufflepuffHouse.Students.Add(studentDto);
-                _sortingContext.Update(hufflepuffHouse);
-            }
-            else
-            {
-                var random = new Random();
-                var randomHouseOrdinalNumber = random.Next(0, 3);
-                var randomHouse = houses.ElementAt(randomHouseOrdinalNumber);
-                randomHouse.Students.Add(studentDto);
-                _sortingContext.Update(hufflepuffHouse);
-            }
+            AssignStudentToHouse(
+                studentDto,
+                houses,
+                "Hufflepuff");
         }
 
         await _sortingContext.SaveChangesAsync(cancellationToken);
 
         return Created($"/students/{studentDto.Id}", studentDto);
     }
+
+    private void AssignStudentToHouse(
+        StudentDto studentDto,
+        IReadOnlyCollection<HouseDto> houses,
+        string houseName)
+    {
+        var firstChosenHouse = houses.First(house => house.Name == houseName);
+        var hasEvenNumberOfStudents = firstChosenHouse.Students.Count % 2 == 0;
+
+        if (hasEvenNumberOfStudents)
+        {
+            firstChosenHouse.Students.Add(studentDto);
+            _sortingContext.Update(firstChosenHouse);
+        }
+        else
+        {
+            RandomizeHouse(studentDto, houses);
+        }
+    }
+
+    private void RandomizeHouse(
+        StudentDto studentDto,
+        IReadOnlyCollection<HouseDto> houses)
+    {
+        var random = new Random();
+        var randomHouseOrdinalNumber = random.Next(0, 3);
+        var randomHouse = houses.ElementAt(randomHouseOrdinalNumber);
+        var hasFoundHouse = false;
+
+        switch (randomHouse.Name)
+        {
+            case "Slytherin" when CanAssignToSlytherin(studentDto):
+                randomHouse.Students.Add(studentDto);
+                hasFoundHouse = true;
+                break;
+            case "Gryffindor" when CanAssignToGryffindor(studentDto):
+                randomHouse.Students.Add(studentDto);
+                hasFoundHouse = true;
+                break;
+            case "Ravenclaw" when CanAssignToRavenclaw(studentDto):
+                randomHouse.Students.Add(studentDto);
+                hasFoundHouse = true;
+                break;
+            case "Hufflepuff":
+                randomHouse.Students.Add(studentDto);
+                hasFoundHouse = true;
+                break;
+        }
+
+        if (hasFoundHouse)
+        {
+            randomHouse.Students.Add(studentDto);
+            _sortingContext.Update(randomHouse);
+            return;
+        }
+        
+        RandomizeHouse(
+            studentDto,
+            houses);
+    }
+
+    private static bool CanAssignToSlytherin(StudentDto studentDto) =>
+        studentDto.IsAmbitious && studentDto.DoesSpeakParseltongue;
+    
+    private static bool CanAssignToGryffindor(StudentDto studentDto) =>
+        studentDto.HeightInCentimeters > 180;
+    
+    private static bool CanAssignToRavenclaw(StudentDto studentDto) =>
+        studentDto.DoesPlayQuidditch;
 }
