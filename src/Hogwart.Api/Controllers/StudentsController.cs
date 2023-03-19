@@ -87,6 +87,69 @@ public class StudentsController : ControllerBase
         return Created($"/students/{studentDto.Id}", studentDto);
     }
 
+    [HttpPatch("{studentId:int}")]
+    public async Task<IActionResult> PatchAsync(
+        [FromRoute] int studentId,
+        [FromBody] PatchStudentHouseDto houseDto,
+        CancellationToken cancellationToken = default)
+    {
+        if (houseDto is null || studentId == default)
+        {
+            return BadRequest();
+        }
+
+        var student = await _sortingContext
+            .Students
+            .FirstOrDefaultAsync(
+                student =>
+                    student.Id == studentId,
+                cancellationToken);
+
+        if (student is null)
+        {
+            return NotFound();
+        }
+
+        var isHouseInvalid = houseDto is not { HouseName: "Gryffindor" or "Hufflepuff" or "Ravenclaw" or "Slytherin" };
+
+        if (isHouseInvalid)
+        {
+            return BadRequest();
+        }
+
+        var actualHouse = await _sortingContext
+            .Houses
+            .Include(house => house.Students)
+            .FirstOrDefaultAsync(
+                house =>
+                    house.Students.Any(assignedStudent =>
+                        assignedStudent.Id == studentId),
+                cancellationToken);
+
+        if (actualHouse is null)
+        {
+            return BadRequest();
+        }
+
+        var expectedHouse = await _sortingContext
+            .Houses
+            .Include(house => house.Students)
+            .FirstOrDefaultAsync(
+                house =>
+                    house.Name == houseDto.HouseName,
+                cancellationToken);
+
+        actualHouse.Students.Remove(student);
+        expectedHouse.Students.Add(student);
+
+        _sortingContext.Houses.Update(actualHouse);
+        _sortingContext.Houses.Update(expectedHouse);
+
+        await _sortingContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
     private void AssignStudentToHouse(
         StudentDto studentDto,
         IReadOnlyCollection<HouseDto> houses,
