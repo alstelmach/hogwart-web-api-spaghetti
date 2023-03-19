@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace Hogwart.Api.DTO;
 
 public class StudentDto
 {
-    [JsonIgnore]
     [Key]
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public int Id { get; init; }
 
     public string FirstName { get; init; }
